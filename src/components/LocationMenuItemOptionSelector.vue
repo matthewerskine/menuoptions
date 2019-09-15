@@ -136,7 +136,9 @@ export default {
         // Take from original menu items collection and added to selected.
         const menuItemOption = this.takeMenuItemOption(name)
         this.selectedMenuItemOptions.push(menuItemOption);
-        this.selectedMenuItemOptionsClones.push(Object.assign({}, menuItemOption));
+        this.selectedMenuItemOptionsClones.push(
+          JSON.parse(JSON.stringify(menuItemOption))
+        );
       },
     },
 }
