@@ -25,6 +25,8 @@
                 :href="`#option-value-${index}`"
               >
                 {{ option }}
+
+                <a class="pull-right button" @click="handleMenuItemOptionRemoved(option)">X</a>
               </a>
             </li>
           </ul>
@@ -51,8 +53,8 @@
                   <tr v-for="(optionValue, ovIndex) in selectedMenuItemOptions[index].option_values" :key="optionValue.id">
                     <td>
                       <v-select
-                        :options="selectedMenuItemOptionsClones[index].option_values.map(i => i.value)"
-                        :value="selectedMenuItemOptionsClones[index].option_values.map(i => i.value)[ovIndex]"
+                        :options="allMenuItemOptions[index].option_values.map(i => i.value)"
+                        :value="allMenuItemOptions[index].option_values.map(i => i.value)[ovIndex]"
                       />
                     </td>
                     <td><input v-model="optionValue.price"/></td>
@@ -81,7 +83,7 @@
                 </tbody>
               </table>
             </div>
-            <button class="button">Save All</button>
+            <button class="button" @click="saveAll">Save All</button>
           </div>
         </div>
     </div>
@@ -95,51 +97,51 @@ export default {
     components: {'v-select': vSelect},
     data() {
       return {
-        /**
-         * The active menu item option pane index.
-         */
-        activeSelectedMenuItemOptionPaneIndex: 0,
-
-        /**
-         * Menu item options that have been overridden.
-         */
+        allMenuItemOptions: [],
         selectedMenuItemOptions: [],
-        selectedMenuItemOptionsClones: [],
-
-        /**
-         * Remaining menu item options that can be overridden.
-         */
         originalMenuItemOptions: [],
+        activeSelectedMenuItemOptionPaneIndex: 0,
       }
     },
     props: ['resourceName', 'resourceId', 'field'],
     async mounted() {
         this.originalMenuItemOptions = await getLocationMenuItems();
+        this.allMenuItemOptions = JSON.parse(JSON.stringify(
+          this.originalMenuItemOptions
+        ));
     },
     methods: {
       /**
+       * Saves the state of the selected menu item options.
+       */
+      saveAll() {
+        // Validation
+      },
+
+      /**
        * Takes a menu item option from the remaining menu item options.
        */
-      takeMenuItemOption(name) {
-        const menuItemOption = this.originalMenuItemOptions.filter(i => i.name == name)[0];
-
-        this.originalMenuItemOptions = this.originalMenuItemOptions.filter(i => i.name !== name);
-
-        return menuItemOption;
+      findMenuItemOptionByName(name) {
+        return this.allMenuItemOptions.filter(i => i.name === name)[0];
       },
 
       /**
        * Handles a menu item option being selected from the dropdown.
        */
       handleMenuItemOptionSelected(name) {
-
-        // Take from original menu items collection and added to selected.
-        const menuItemOption = this.takeMenuItemOption(name)
+        const menuItemOption = this.findMenuItemOptionByName(name);
+        this.originalMenuItemOptions = this.originalMenuItemOptions.filter(i => i.name !== name);
         this.selectedMenuItemOptions.push(menuItemOption);
-        this.selectedMenuItemOptionsClones.push(
-          JSON.parse(JSON.stringify(menuItemOption))
-        );
       },
+
+      /**
+       * Handles a selected menu item tab being closed.
+       */
+      handleMenuItemOptionRemoved(name) {
+        const menuItemOption = this.findMenuItemOptionByName(name);
+        this.selectedMenuItemOptions = this.selectedMenuItemOptions.filter(i => i.name !== name);
+        this.originalMenuItemOptions.push(menuItemOption);
+      }
     },
 }
 </script>
